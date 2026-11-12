@@ -1,0 +1,41 @@
+name: ShanghaiT2DM public-data benchmark
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - scripts/acquire_shanghai.py
+      - scripts/run_public_benchmark.py
+      - src/lbidsm/prediction.py
+      - .github/workflows/public-benchmark.yml
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e '.[benchmark]' requests openpyxl
+      - name: Download official Figshare dataset and harmonize
+        run: python scripts/acquire_shanghai.py --out benchmark_results/source --unit mmol/L
+      - name: Run locked baseline comparison
+        run: |
+          python scripts/run_public_benchmark.py \
+            --csv benchmark_results/source/shanghai_t2dm_harmonized.csv \
+            --dataset-name ShanghaiT2DM \
+            --source-url https://doi.org/10.6084/m9.figshare.20444397 \
+            --out benchmark_results/evaluation
+      - name: Save nonpatient aggregate metrics and source audit trail
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shanghai-benchmark-audit
+          path: |
+            benchmark_results/evaluation/metrics.csv
+            benchmark_results/evaluation/provenance.json
+            benchmark_results/source/source_provenance.json
+            benchmark_results/source/archive_inventory.json
+            benchmark_results/source/harmonization_manifest.json
+          if-no-files-found: warn
+          retention-days: 30
