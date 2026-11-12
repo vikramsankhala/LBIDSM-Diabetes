@@ -24,7 +24,7 @@ jobs:
           python scripts/run_public_benchmark.py \
             --csv benchmark_results/source/shanghai_t2dm_harmonized.csv \
             --dataset-name ShanghaiT2DM \
-            --source-url https://doi.org/10.6084/m9.figshare.20444397 \
+            --source-url https://doi.org/10.6084/m9.figshare.21600933 \
             --out benchmark_results/evaluation
       - name: Save nonpatient aggregate metrics and source audit trail
         if: always()
