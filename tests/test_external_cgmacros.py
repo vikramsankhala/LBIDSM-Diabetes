@@ -18,12 +18,13 @@ def test_unknown_phenotype_fails_closed():
 
 def test_mock_zip_harmonization(tmp_path):
     path=tmp_path/"mock.zip"
-    bio=pd.DataFrame({"ID":[1,2],"A1c PDL (Lab)":[7.2,5.5]})
+    bio=pd.DataFrame({"ID":[1,2],"A1c PDL (Lab)":[7.2,7.1]})
     ts=pd.date_range("2026-01-01",periods=90,freq="min")
     cg=pd.DataFrame({"Timestamp":ts.astype(str),"Dexcom GL":np.linspace(110,120,90)})
     with zipfile.ZipFile(path,"w") as z:
         z.writestr("bio.csv",bio.to_csv(index=False))
         z.writestr("CGMacros-001/CGMacros-001.csv",cg.to_csv(index=False))
+        z.writestr("CGMacros-002/CGMacros-002.csv",cg.to_csv(index=False))
     d,meta=harmonize(path)
-    assert d.subject_id.nunique()==1
-    assert len(d)==18
+    assert d.subject_id.nunique()==2
+    assert len(d)==36
