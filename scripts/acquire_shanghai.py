@@ -100,7 +100,7 @@ def harmonize(archive, out, unit="mmol/L"):
                 manifest.append({"name": name, "status": "error", "error": str(exc)})
     (out / "harmonization_manifest.json").write_text(json.dumps(manifest, indent=2))
     if not rows:
-        raise RuntimeError("No usable CGM tables. Inspect archive_inventory and harmonization_manifest.")
+        raise RuntimeError("No usable CGM tables. Archive inventory: " + json.dumps(names[:80]) + "; manifest: " + json.dumps(manifest[:30]))
     combined = pd.concat(rows, ignore_index=True).sort_values(["subject_id", "timestamp"])
     combined = combined.drop_duplicates(["subject_id", "timestamp"])
     path = out / "shanghai_t2dm_harmonized.csv"
