@@ -1,0 +1,41 @@
+name: CGMacros independent external validation
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - scripts/external_cgmacros.py
+      - .github/workflows/external-cgmacros.yml
+jobs:
+  external:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install research dependencies
+        run: python -m pip install -e '.[benchmark]' requests openpyxl xlrd
+      - name: Acquire ShanghaiT2DM source cohort
+        run: python scripts/acquire_shanghai.py --out benchmark_results/source --unit mg/dL
+      - name: Acquire CGMacros and perform frozen external validation
+        run: |
+          python scripts/external_cgmacros.py \
+            --shanghai benchmark_results/source/shanghai_t2dm_harmonized.csv \
+            --out benchmark_results/external \
+            --sensor 'Dexcom GL' --bootstrap 1000
+      - name: Upload aggregate metrics and provenance only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cgmacros-external-validation
+          path: |
+            benchmark_results/external/eligibility.json
+            benchmark_results/external/external_metrics.csv
+            benchmark_results/external/external_calibration.json
+            benchmark_results/external/external_cluster_intervals.csv
+            benchmark_results/external/external_event_alert_analysis.json
+            benchmark_results/external/*inconclusive.txt
+            benchmark_results/external/INCONCLUSIVE.txt
+          retention-days: 30
+          if-no-files-found: warn
