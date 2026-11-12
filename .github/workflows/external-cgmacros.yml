@@ -20,7 +20,7 @@ jobs:
         run: python scripts/acquire_shanghai.py --out benchmark_results/source --unit mg/dL
       - name: Acquire CGMacros and perform frozen external validation
         run: |
-          python scripts/external_cgmacros.py \
+          python -m scripts.external_cgmacros \
             --shanghai benchmark_results/source/shanghai_t2dm_harmonized.csv \
             --out benchmark_results/external \
             --sensor 'Dexcom GL' --bootstrap 1000
