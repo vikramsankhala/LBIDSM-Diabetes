@@ -26,12 +26,20 @@ jobs:
             --dataset-name ShanghaiT2DM \
             --source-url https://doi.org/10.6084/m9.figshare.21600933 \
             --out benchmark_results/evaluation
+      - name: Expanded patient-clustered validation
+        run: |
+          python scripts/expanded_validation.py \
+            --csv benchmark_results/source/shanghai_t2dm_harmonized.csv \
+            --out benchmark_results/expanded \
+            --bootstrap 1000
       - name: Save nonpatient aggregate metrics and source audit trail
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: shanghai-benchmark-audit
           path: |
+            benchmark_results/expanded/*.csv
+            benchmark_results/expanded/*.json
             benchmark_results/evaluation/metrics.csv
             benchmark_results/evaluation/provenance.json
             benchmark_results/source/source_provenance.json
