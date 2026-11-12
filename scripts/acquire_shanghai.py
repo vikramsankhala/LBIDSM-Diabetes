@@ -52,7 +52,7 @@ def acquire(out):
             errors.append(f"{article_id}: {type(exc).__name__}: {exc}")
     raise RuntimeError("Unable to download official ZIP: " + "; ".join(errors))
 
-def harmonize(archive, out, unit="mmol/L"):
+def harmonize(archive, out, unit="mg/dL"):
     out = Path(out)
     rows = []
     manifest = []
@@ -60,7 +60,7 @@ def harmonize(archive, out, unit="mmol/L"):
         names = [n for n in z.namelist() if not n.endswith("/")]
         (out / "archive_inventory.json").write_text(json.dumps(names, indent=2))
         # Require T2DM directory name; never silently mix T1DM and T2DM.
-        candidates = [n for n in names if re.search(r"shanghai[_ -]?t2dm", n, re.I) and n.lower().endswith((".csv", ".xlsx", ".xls"))]
+        candidates = [n for n in names if not n.startswith("__MACOSX/") and not Path(n).name.startswith("._") and re.search(r"shanghai[_ -]?t2dm/", n, re.I) and n.lower().endswith((".csv", ".xlsx", ".xls"))]
         if not candidates:
             raise RuntimeError("No identifiable Shanghai_T2DM CGM files. Inventory saved; inspect manually.")
         for name in candidates:
@@ -72,7 +72,7 @@ def harmonize(archive, out, unit="mmol/L"):
                     df = pd.read_excel(io.BytesIO(data))
                 lower = {str(c).strip().lower(): c for c in df.columns}
                 date_col = next((lower[k] for k in ("date", "timestamp", "time", "datetime") if k in lower), None)
-                glucose_col = next((lower[k] for k in ("cgm", "glucose", "glucose_mg_dl") if k in lower), None)
+                glucose_col = next((lower[k] for k in ("cgm (mg / dl)", "cgm (mg/dl)", "cgm", "glucose", "glucose_mg_dl") if k in lower), None)
                 if date_col is None or glucose_col is None:
                     manifest.append({"name": name, "status": "skipped_no_date_cgm_columns", "columns": list(map(str, df.columns))})
                     continue
@@ -88,6 +88,8 @@ def harmonize(archive, out, unit="mmol/L"):
                     t = t.dt.tz_localize("Asia/Shanghai", ambiguous="NaT", nonexistent="NaT")
                 t = t.dt.tz_convert("UTC")
                 g = pd.to_numeric(df[glucose_col], errors="coerce")
+                if "mg" in str(glucose_col).lower() and unit != "mg/dL":
+                    raise ValueError("Source column explicitly says mg/dL; refusing mmol/L conversion")
                 if unit == "mmol/L":
                     g = g * 18.0182
                 elif unit != "mg/dL":
@@ -111,7 +113,7 @@ def harmonize(archive, out, unit="mmol/L"):
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--out", default="benchmark_results/source")
-    p.add_argument("--unit", choices=["mmol/L", "mg/dL"], default="mmol/L", help="Verify with source dictionary before interpreting")
+    p.add_argument("--unit", choices=["mmol/L", "mg/dL"], default="mg/dL", help="Original files label CGM (mg / dl); conversion is not required")
     a = p.parse_args()
     archive, info = acquire(a.out)
     print("Source DOI:", info["article_doi"], "SHA-256:", info["source_zip_sha256"])
