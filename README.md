@@ -21,6 +21,14 @@
 
 Trained hypoglycemia prediction, patient-specific causal effects, genetics, personalized medical recommendations, optimized treatments, clinical-grade data pipelines, external validation, regulatory compliance and production access controls. These are **research specifications only**.
 
+
+## Research papers (two distinct manuscripts)
+
+1. **Computational architecture white paper:** [A Proposed Mathematical and AI Architecture for Personalized Intervention Decision Support, for Diabetes](paper/WHITE_PAPER.md). Mathematical and engineering specification.
+2. **Companion conceptual white paper (author-supplied):** [From Glucose Thresholds to Intervention Intelligence](paper/FROM_GLUCOSE_THRESHOLDS_TO_INTERVENTION_INTELLIGENCE.md). Six-page original manuscript transcribed into readable Markdown, including its clinical foundations, eight-layer architecture, decision policy and validation roadmap. The original PDF can be added as a binary asset separately.
+
+Both are **proposed research manuscripts**, not peer-reviewed or clinically validated studies. They are preserved separately, not merged or substituted.
+
 ## Getting started
 
 Requires Python 3.10–3.13.
