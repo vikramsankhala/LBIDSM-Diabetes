@@ -67,18 +67,39 @@ Send a targeted data-access inquiry to the Hypo-METRICS corresponding author and
 
 ## Proposed Hypo-METRICS inquiry
 
-Subject: Research data-access inquiry — independent validation of CGM hypoglycemia prediction in T2D
+**Subject:** Research Data Access Request — Hypo-METRICS T2D CGM Cohort (Research Proposal Attached)
 
-Dear Hypo-METRICS research team,
+Dear Hypo-METRICS Research Team,
 
-I am conducting an independent, non-clinical research evaluation of frozen CGM-based models for predicting observed glucose <54 mg/dL within the following 60 minutes. The published Hypo-METRICS results suggest that the insulin-treated T2D cohort could support a scientifically meaningful external validation.
+I am writing to enquire about access to deidentified participant-level continuous glucose monitoring (CGM) data from the Hypo-METRICS study for independent academic research.
 
-Could you advise whether deidentified participant-level CGM time series and associated T2D, therapy, and sensor metadata may be made available to external academic researchers under an appropriate data-use agreement? In particular, we would like to establish whether the exported glucose values and timestamps are device-native (rather than interpolated), whether dates were shifted, and whether aggregate counts of distinct <54 mg/dL episodes and episode-positive participants can be supplied for feasibility assessment.
+My project, LBIDSM-Diabetes, is developing a mathematical and AI-based research framework for diabetes intervention decision support. I have completed retrospective experiments using ShanghaiT2DM and a feasibility evaluation using CGMacros. The latter demonstrated external evaluation workflow feasibility but did not establish reliable predictive performance because of insufficient observed hypoglycemia events.
 
-We would use the cohort strictly as an independent locked-model test set, without retraining or calibrating on its outcomes, and would publish only aggregate statistics subject to the applicable permissions. Please advise the appropriate contact, ethics/data-access process, licensing conditions and any required research proposal.
+My immediate research objective is to independently evaluate frozen prediction models for glucose readings below 54 mg/dL within the subsequent 60 minutes, without retraining, recalibration or outcome-driven model selection on the external cohort.
+
+I would be grateful for guidance on:
+
+1. Availability of deidentified participant-level CGM time series for the type 2 diabetes cohort.
+2. Availability of original device-native glucose measurements and timestamps, rather than interpolated or resampled data.
+3. Aggregate counts of independent hypoglycemia episodes below 54 mg/dL and the number of participants experiencing these episodes.
+4. Availability of relevant clinical metadata, including diabetes classification, insulin treatment and CGM device characteristics.
+5. Applicable ethical approvals, data-use agreements, access procedures and publication restrictions.
+
+For your consideration, I have attached a formal research proposal outlining the study objectives, proposed methodology and intended data governance safeguards.
+
+I am willing to complete the applicable ethics and institutional approval processes, enter into an appropriate data-use agreement, and implement the data security and confidentiality requirements specified by your institution before receiving participant-level data. No patient-level information would be published or uploaded to my public project repository.
+
+My project repository is available at:
+
+https://github.com/vikramsankhala/LBIDSM-Diabetes
+
+Thank you for considering my request. I would appreciate your guidance on the appropriate process and contact person.
 
 Kind regards,  
-Vikram Singh Sankhala
+**Vikram Singh Sankhala**  
+LBIDSM-Diabetes Research Project
+
+**Attachment:** Hypo-METRICS Research Data Access and Independent External Validation Proposal (PDF)
 
 ## Proposed DiaGame inquiry
 
