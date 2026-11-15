@@ -1,4 +1,4 @@
-# Research modules (v0.3.0)
+# Research modules (v0.3.1)
 
 **Status:** research code tested on synthetic data only. Not a medical device. Not clinically validated. Do not use for patient care.
 
@@ -34,6 +34,8 @@ python scripts/demo_research_pipeline.py --out demo_sparse --sparse-external
 The second demo mimics the CGMacros situation (few people, almost no events). The qualification gate stops and reports "inconclusive" instead of a score.
 
 ## Decisions that need a human
+
+Provisional choices, with reasoning, are in `docs/DECISIONS.md` and `src/lbidsm/protocol.py`. They are working values, not approvals.
 
 These are deliberate design choices that code cannot settle. Each should be written into the study protocol and signed off.
 

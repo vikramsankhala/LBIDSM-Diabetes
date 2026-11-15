@@ -16,12 +16,14 @@ from lbidsm.evidence import build_pack, release_blockers, write_pack
 from lbidsm.genetics import mr_summary
 from lbidsm.integrity import apply_gate, audit_cohort, summarise
 from lbidsm.model_bundle import predict, train_frozen
-from lbidsm.policy import ActionOption, DecisionInput, PolicyConfig, decide
+from lbidsm.eligibility import apply_eligibility
+from lbidsm.policy import ActionOption, DecisionInput, decide
+from lbidsm.protocol import HARM_WEIGHT_SCENARIOS, POLICY, QUALIFICATION
 from lbidsm.prediction import cohort_split, make_examples
 from lbidsm.requirements import REQUIREMENTS
 from lbidsm.synthetic_cohort import synthetic_cohort
 from lbidsm.utility import Candidate, robust_rank
-from lbidsm.validation import QualificationPolicy, external_validation, qualify
+from lbidsm.validation import external_validation, qualify
 
 
 def main():
@@ -50,8 +52,7 @@ def main():
     print("3. External cohort: qualification gate, then locked validation")
     ext_raw = (synthetic_cohort(n_subjects=14, days=14, seed=99, dip_rate_per_day=0.004) if args.sparse_external
                else synthetic_cohort(n_subjects=30, days=14, seed=99))
-    policy = QualificationPolicy(min_positive_subjects=5, min_independent_episodes=20,
-                                 max_planned_halfwidth=0.20, planning_auroc=0.75, assumed_icc=0.3)
+    policy = QUALIFICATION  # provisional values from lbidsm.protocol, with reasoning
     gate = qualify(ext_raw, policy)
     print("   gate:", {k: gate[k] for k in ("positive_subjects", "independent_episodes", "planned_halfwidth", "passed")})
     ext_examples = make_examples(apply_gate(ext_raw, audit_cohort(ext_raw)))
@@ -85,15 +86,17 @@ def main():
     print("6. Optimised treatments: robust research ranking")
     d = np.random.default_rng(2)
     cands = [Candidate("option_A", d.normal(0.10, 0.02, 400), {"level2_low": d.normal(0.06, 0.01, 400)}),
-             Candidate("option_B", d.normal(0.06, 0.02, 400), {"level2_low": d.normal(0.01, 0.005, 400)}),
+             Candidate("option_B", d.normal(0.08, 0.02, 400), {"level2_low": d.normal(0.002, 0.0005, 400)}),
              Candidate("option_C", d.normal(0.20, 0.02, 400), {}, eligible=False, ineligible_reason="excluded by rule table")]
-    ranked = robust_rank(cands, [{"level2_low": 0.5}, {"level2_low": 3.0}])
+    demo_table = {"version": "demo-table", "approved_by": "DEMO ONLY", "approved_on": "2026-01-01",
+                  "actions": {"option_A": [], "option_B": []}}   # option_C is not listed, so it is excluded
+    apply_eligibility(cands, {}, demo_table)
+    ranked = robust_rank(cands, HARM_WEIGHT_SCENARIOS)
     for r in ranked:
         print(f"   {r['action']}: worst-case utility {r['worst_case_utility']:.3f}, eligible={r['eligible']}")
 
     print("7. L7 decision policy")
-    cfg = PolicyConfig(version="rules-demo-0", escalate_risk=0.40, max_risk_interval_width=0.30,
-                       review_min_utility=0.02, assess_risk=0.15)
+    cfg = POLICY
     options = [ActionOption(r["action"], r["utility"], r["lo"], r["hi"], r["eligible"]) for r in ranked]
     for label, inp in {
         "stable": DecisionInput("p1", "2026-01-01T00:00:00Z", True, 120.0, risk=(0.03, 0.01, 0.06), model_version="M2"),

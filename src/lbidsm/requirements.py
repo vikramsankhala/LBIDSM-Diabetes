@@ -66,6 +66,11 @@ REQUIREMENTS = {
     "REG-003": "A complete pack has no blockers.",
     "REG-004": "The pack is written with its own hash.",
     "REG-005": "Unknown checklist statuses are rejected.",
+    # Provisional protocol and eligibility (protocol.py, eligibility.py)
+    "PRO-001": "Provisional protocol values are named, versioned and marked provisional.",
+    "ELG-001": "With no approved rule table, no action option is eligible (fail closed).",
+    "ELG-002": "A rule table without approver and date is rejected.",
+    "ELG-003": "A matching exclusion rule makes an option ineligible and states the reason.",
     # Traceability itself
     "TRC-001": "Every register entry has a test and every test tag is in the register.",
 }
