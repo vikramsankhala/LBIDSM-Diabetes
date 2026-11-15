@@ -15,7 +15,7 @@
 - Time-weighted time-in-range, time-below-range, time-above-range, coefficient of variation and glucose summary metrics.
 - Historical glucose velocity, rolling mean and dispersion.
 - Interactive Plotly/Streamlit charts, descriptive threshold annotations and unit tests.
-- Scientific manuscript in [paper/WHITE_PAPER.md](paper/WHITE_PAPER.md), with [implementation plan](docs/ARCHITECTURE.md), [data contract](docs/DATA_CONTRACT.md) and [validation protocol](docs/VALIDATION.md). Data sources and access status are in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
+- Scientific manuscript in [paper/WHITE_PAPER.md](paper/WHITE_PAPER.md), with [implementation plan](docs/ARCHITECTURE.md), [data contract](docs/DATA_CONTRACT.md) and [validation protocol](docs/VALIDATION.md). Data sources and access status are in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md). To run the research demo step by step, see the [demo user manual](docs/DEMO_USER_MANUAL.md).
 
 ### Research code, not validated
 
