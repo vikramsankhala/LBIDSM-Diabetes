@@ -1,0 +1,71 @@
+"""Requirement register. Each ID must be covered by at least one test tagged `# REQ: <id>`."""
+
+REQUIREMENTS = {
+    # L0 data integrity (integrity.py)
+    "L0-001": "A clean five-minute CGM record passes the quality gate.",
+    "L0-002": "Records with long gaps or low coverage fail, with a reason.",
+    "L0-003": "A stuck sensor (long run of identical values) fails.",
+    "L0-004": "Out-of-range values and duplicate timestamps are counted, not hidden.",
+    "L0-005": "The gate removes failed subjects and keeps passing ones; nothing is repaired.",
+    "L0-006": "Raw input files are fingerprinted so results tie to exact bytes.",
+    # L5 prediction (model_bundle.py)
+    "L5-001": "A frozen model survives a JSON round trip with identical predictions.",
+    "L5-002": "A model file that was altered is refused.",
+    "L5-003": "Any parameter change changes the fingerprint.",
+    "L5-004": "Training and calibration use different people.",
+    "L5-005": "The CGM-history model is not materially worse than current glucose on held-out synthetic data.",
+    # Validation (validation.py)
+    "VAL-001": "Two dips far apart count as two independent episodes.",
+    "VAL-002": "Dips close together count as one episode.",
+    "VAL-003": "Planned precision improves with more events.",
+    "VAL-004": "Patient-clustered intervals are wider than naive window intervals when windows repeat within a person.",
+    "VAL-005": "If the qualification gate fails, no performance number is produced.",
+    "VAL-006": "A locked model is scored with clustered intervals when the gate passes.",
+    "VAL-007": "A model whose fingerprint differs from the recorded one is refused.",
+    "VAL-008": "Calibration slope and intercept are near 1 and 0 for calibrated scores.",
+    # L6 causal effects and utility (causal.py, utility.py)
+    "L6-001": "Weighting recovers a known effect that a naive comparison gets wrong.",
+    "L6-002": "Weighting improves covariate balance and reports positivity.",
+    "L6-003": "Weights are positive, truncated and improve balance.",
+    "L6-004": "E-values match known values.",
+    "L6-005": "Patient-level effect estimates identify the people who respond more.",
+    "L6-010": "Utility is benefit minus weighted harms minus cost.",
+    "L6-011": "A missing severity weight is an error, not a default.",
+    "L6-012": "Ranking changes with how severe a harm is judged, and the robust choice is stable.",
+    "L6-013": "Ineligible actions are excluded from the ranking and listed with a reason.",
+    "L6-014": "Utility summaries carry uncertainty intervals.",
+    # L1 genetics (genetics.py)
+    "L1-001": "MR estimators recover a known effect without pleiotropy.",
+    "L1-002": "MR-Egger flags directional pleiotropy that biases the plain estimate.",
+    "L1-003": "Allele harmonisation flips mismatches and drops ambiguous variants.",
+    "L1-004": "Weak instruments are filtered out.",
+    "L1-005": "Too few instruments gives an inconclusive result.",
+    # L7 policy (policy.py)
+    "L7-001": "A reading below 54 mg/dL always escalates.",
+    "L7-002": "A failed quality gate abstains.",
+    "L7-003": "Wide uncertainty, a missing estimate or out-of-range input abstains.",
+    "L7-004": "A confidently high risk escalates.",
+    "L7-005": "Review lists only eligible options and labels the evidence strength.",
+    "L7-006": "Rising risk is Assess; otherwise Monitor.",
+    "L7-007": "Every decision carries the audit fields from the data contract and states that no treatment is executed.",
+    "L7-008": "Property check: any reading below 54 mg/dL escalates, whatever else is true.",
+    "L7-009": "Outputs are always one of the five governed categories.",
+    # Security (access.py)
+    "SEC-001": "Access is denied by default.",
+    "SEC-002": "Restricted data needs multi-factor sign-in, an agreement ID, the enclave and a fresh session.",
+    "SEC-003": "Exports need disclosure review or an egress approval.",
+    "SEC-004": "Model changes need a change-control ticket.",
+    "SEC-005": "Every access attempt is logged in a verifiable chain.",
+    "SEC-006": "Edits or deletions in the audit log are detected.",
+    "SEC-007": "Counts below 5 are suppressed.",
+    "SEC-008": "Patient-level files are flagged before they can be committed.",
+    "SEC-009": "Audit entries are serialisable.",
+    # Regulatory evidence (evidence.py)
+    "REG-001": "Each requirement is traced to its tests and gaps are listed.",
+    "REG-002": "An incomplete evidence pack lists every release blocker.",
+    "REG-003": "A complete pack has no blockers.",
+    "REG-004": "The pack is written with its own hash.",
+    "REG-005": "Unknown checklist statuses are rejected.",
+    # Traceability itself
+    "TRC-001": "Every register entry has a test and every test tag is in the register.",
+}

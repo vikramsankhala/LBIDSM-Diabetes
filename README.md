@@ -1,6 +1,6 @@
 # LBIDSM-DM — Layered Biological Intervention Decision Support for Diabetes
 
-**Author:** Vikram Singh Sankhala · **Version:** 0.1.0 · **Status:** Computational research demonstrator (**not clinically validated**)
+**Author:** Vikram Singh Sankhala · **Version:** 0.3.0 · **Status:** Computational research demonstrator (**not clinically validated**)
 
 > **Medical safety:** This software is not a medical device. It must not be used to diagnose illness, estimate validated patient-specific risk, make medication adjustments, or handle emergencies. All bundled data are synthetic.
 
@@ -17,9 +17,21 @@
 - Interactive Plotly/Streamlit charts, descriptive threshold annotations and unit tests.
 - Scientific manuscript in [paper/WHITE_PAPER.md](paper/WHITE_PAPER.md), with [implementation plan](docs/ARCHITECTURE.md), [data contract](docs/DATA_CONTRACT.md) and [validation protocol](docs/VALIDATION.md).
 
-### Not implemented / not validated
+### Research code, not validated
 
-Trained hypoglycemia prediction, patient-specific causal effects, genetics, personalized medical recommendations, optimized treatments, clinical-grade data pipelines, external validation, regulatory compliance and production access controls. These are **research specifications only**.
+Research modules now exist for each area below, tested **on synthetic data only** (see [docs/RESEARCH_MODULES.md](docs/RESEARCH_MODULES.md)). None is clinically validated and none may be used for patient care.
+
+| Area | Research code | Status |
+|---|---|---|
+| Clinical-grade data pipelines | `integrity.py` | Quality gate with written reasons; **not** a certified clinical pipeline |
+| Trained hypoglycemia prediction | `prediction.py`, `model_bundle.py` | Baseline M0, M1, M2 and hash-locked model files; **not** clinically validated |
+| External validation | `validation.py`, `scripts/external_cgmacros.py` | Gate and patient-clustered intervals built; **no cohort currently qualifies** (see the qualification report) |
+| Patient-specific causal effects | `causal.py` | Single time-zero emulation; time-varying models still to do |
+| Genetics | `genetics.py` | Mendelian randomisation on summary statistics; not run on real data |
+| Optimized treatments | `utility.py` | Research ranking with explicit value weights; **never a prescription** |
+| Personalized medical recommendations | `policy.py` | Routes to a human; executes nothing |
+| Regulatory compliance | `evidence.py` | Evidence pack and release blockers; **not** regulatory clearance |
+| Production access controls | `access.py` | Reference design and test bed; **not** a deployed or audited system |
 
 
 ## Research papers (two distinct manuscripts)
@@ -63,6 +75,18 @@ app.py                       Research dashboard
 src/lbidsm/analytics.py      CGM validation, time-weighted metrics and trends
 src/lbidsm/simulation.py     Reproducible synthetic examples
 src/lbidsm/rules.py          Descriptive annotations (not treatment rules)
+src/lbidsm/prediction.py     Leakage-aware windows and M0, M1, M2 baselines
+src/lbidsm/integrity.py      L0 data-quality audit and gate
+src/lbidsm/model_bundle.py   Frozen, fingerprinted model files
+src/lbidsm/validation.py     Cohort qualification gate, clustered intervals
+src/lbidsm/causal.py         Target-trial emulation, weighting, E-value
+src/lbidsm/genetics.py       Mendelian randomisation from summary statistics
+src/lbidsm/utility.py        Net utility and robust ranking of options
+src/lbidsm/policy.py         L7 decision policy (five governed outputs)
+src/lbidsm/evidence.py       Regulatory evidence pack and release blockers
+src/lbidsm/access.py         Roles, audit chain, small-cell suppression
+src/lbidsm/requirements.py   Requirement register traced to tests
+scripts/                     Benchmarks, demo and patient-data guard
 tests/                      Automated unit tests
 paper/WHITE_PAPER.md        Authored computational white paper
 docs/                       Architecture, data contract and validation plan

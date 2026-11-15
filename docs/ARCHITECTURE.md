@@ -4,14 +4,14 @@
 
 | Layer | Input | Research responsibility | Status |
 |---|---|---|---|
-| L0 Data provenance | CGM, laboratory, EHR, medication records | Validate, align, timestamp and audit | CGM CSV prototype only |
-| L1 Predisposition | Age, family/genetic history, prior events | Long-horizon vulnerability | Planned |
+| L0 Data provenance | CGM, laboratory, EHR, medication records | Validate, align, timestamp and audit | CGM CSV prototype; `integrity.py` adds a research quality gate |
+| L1 Predisposition | Age, family/genetic history, prior events | Long-horizon vulnerability | Research code: `genetics.py` (Mendelian randomisation only) |
 | L2 Clinical context | CKD, cardiovascular disease, frailty, therapies | Contraindications, baseline risk | Planned |
 | L3 Observed state | CGM and laboratory data | Clinical definitions, quality gates | Descriptive analytics |
 | L4 Dynamics | Longitudinal measurements | State estimation, recovery, change points | Rolling features only |
-| L5 Prediction | Historical features and calibrated outcome labels | Horizon-specific event probability | Planned |
-| L6 Causality | Eligibility, treatment assignment, outcomes | Benefit–harm counterfactuals | Planned |
-| L7 Governance | Evidence, uncertainty, action eligibility | Human review and abstention | Specified, not deployed |
+| L5 Prediction | Historical features and calibrated outcome labels | Horizon-specific event probability | Research baselines: `prediction.py`, `model_bundle.py` |
+| L6 Causality | Eligibility, treatment assignment, outcomes | Benefit–harm counterfactuals | Research code: `causal.py`, `utility.py` (single time zero) |
+| L7 Governance | Evidence, uncertainty, action eligibility | Human review and abstention | Research code: `policy.py`; not deployed |
 
 ## Target computational interfaces
 

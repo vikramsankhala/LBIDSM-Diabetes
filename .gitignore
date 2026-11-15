@@ -8,3 +8,4 @@ __pycache__/
 *.sqlite
 patient_data/
 benchmark_results/
+demo_results/
