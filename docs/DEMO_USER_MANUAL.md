@@ -25,7 +25,7 @@ git clone https://github.com/vikramsankhala/LBIDSM-Diabetes.git
 cd LBIDSM-Diabetes
 ```
 
-**Step 2. Switch to the branch with the research modules.** Skip this step once pull request 1 has been merged into `main`.
+**Step 2. Branch.** Pull request 1 has been merged, so the research modules are on `main` and you can skip this step. Only if you want the older feature branch, run the command below.
 
 ```powershell
 git checkout feature/research-modules-v0.3
@@ -207,6 +207,82 @@ Each experiment changes one thing so you can see what it does. Run the demo agai
 
    It should say `No patient-level files found.` It is the check that keeps real patient data out of the public repository.
 
+## Worked results: the demo explained with its own sample data
+
+This section explains what the demo's numbers mean, using the synthetic sample data. Everything here is reproducible: `python scripts/worked_results.py` prints every number below, and `data/sample/` holds real rows to show on screen. Numbers marked (extra) are not printed by the demo itself. They come from re-running the same seeded code.
+
+### 1. The sample data
+
+- The development cohort has 161,280 rows: 40 people times 4,032 readings (14 days of one reading every 5 minutes).
+- The first row is person `S000`, 2026-01-01 00:00 UTC, 162.5 mg/dL. `S000` has 57 readings below 54 mg/dL.
+- All 40 people pass the data-quality gate, so the demo prints "40 of 40". The generator adds sensor noise, because the first version produced perfectly flat dips and the gate rightly rejected most people.
+- To show it live, open `data\sample\synthetic_cgm_sample.csv` (S000 to S004, 20,160 rows).
+
+### 2. Turning readings into model inputs
+
+Cutting the readings into hour-long windows gives 26,720 windows. Only 2.65% are followed by a low in the next hour, and 39 of the 40 people have at least one. Two windows from `S000`:
+
+| Input | Window followed by a low | Window with no low |
+|---|---|---|
+| `last_glucose` | 156.1 | 159.6 |
+| `mean_60` | 142.4 | 159.8 |
+| `min_60` | 131.7 | 149.1 |
+| `slope_15` | +0.80 | -0.46 |
+| Outcome | 1 | 0 |
+| Risk given by the model | 1.5% | 1.6% |
+
+The model gives these two windows almost the same risk. That is realistic: the low in the first window cannot be seen in its readings. A single window is close to unpredictable, so AUROC is the fair measure. It asks whether, across many windows, the windows followed by a low are ranked higher. Twenty such windows, with all nine inputs, are in `data\sample\example_windows.csv`.
+
+The model learned from 24 people (16,032 windows, 434 events) and was calibrated on 8 different people.
+
+### 3. The outside test
+
+- The outside cohort has 30 new people: 20,040 windows and 523 events (2.6%).
+- The gate counted 29 event-positive people and 171 separate episodes, so it passed and the locked model was scored: AUROC 0.778, 95% interval 0.756 to 0.797.
+- (extra) The average predicted risk is 0.334 for windows followed by a low and 0.017 for the others.
+
+(extra) The outside windows split into five equal risk groups:
+
+| Risk group | Predicted | Observed |
+|---|---|---|
+| Lowest four groups | about 1.5% to 1.7% | about 1.1% to 1.2% |
+| Highest group | 6.4% | 8.4% |
+
+- **Ranking works.** The top group has about 7 times the low rate of the others.
+- **Calibration is rough.** It overstates the bottom groups and understates the top one. That is why the full validation reports calibration separately from AUROC.
+- **Alerts (extra).** At a risk cut-off of 0.05 the model alerts on 1.5% of windows (305 alerts), catches 255 of the 523 lows (about half), and 84% of its alerts are followed by a real low. At 0.10 it gives 263 alerts, catches 241, and 92% are followed by a low.
+- **Caveat.** The generator is simple and overlapping windows are correlated. These figures flatter the model. Real cohorts will be harder.
+
+### 4. Causal effect, genetics and ranking, checked against known truths
+
+- **Causal effect.** The synthetic trial was built so the true average risk reduction is 0.072 (extra). The demo estimates 0.053 with interval 0.027 to 0.079, which contains the truth. It is lower than the truth, so one run can miss by a bit. Both safety checks pass, and the E-value of 2.19 means a hidden confounder would have to be fairly strong to explain the result away.
+- **Genetics.** The true effect built into the variants is 0.4. IVW gives 0.349 and MR-Egger gives 0.377. Both are somewhat low, they agree with each other, and there are no warnings.
+- **Ranking, by hand.** Option B: 0.08 minus 10 times 0.002 gives 0.060 (the demo shows 0.059). Option A: 0.10 minus 10 times 0.06 gives -0.50 (the demo shows -0.494). Under the strictest view of lows, A's harm outweighs its benefit. Option C has benefit 0.20 and no harms, but it is ineligible, so it is listed last.
+
+### 5. Decisions, access and evidence
+
+- **Stable person.** The risk upper bound is 0.06, below 0.15, so the output is Monitor.
+- **Benefit case.** Option B's utility of 0.059 is above the 0.02 minimum, so the output is Review.
+- **Bad sensor.** Abstain.
+- **Reading of 48 mg/dL.** Escalate, because 48 is below 54.
+- **Audit log.** The first attempt (restricted data from a laptop) is refused and the second (synthetic data) is allowed. The chain is intact.
+- **Evidence pack.** The five release blockers are the software correctly saying it is not ready for clinical use.
+
+### 6. The sparse run
+
+With `--sparse-external` the outside cohort has 2 event-positive people and a planned half-width of 0.395. The gate fails and no AUROC is produced. This is the contrast to show after the main run.
+
+### A suggested 30-minute lecture flow
+
+| Minutes | What to do |
+|---|---|
+| 0 to 5 | Open `data\sample\synthetic_cgm_sample.csv`. Explain one row and what the 54 mg/dL line means |
+| 5 to 10 | Open `data\sample\example_windows.csv`. Show a window followed by a low and one that is not, with near-equal risks |
+| 10 to 18 | Run the demo and walk through its nine steps with Part C above |
+| 18 to 24 | Show the calibration table and the alert numbers (`python scripts\worked_results.py`) |
+| 24 to 28 | Run `--sparse-external` and show the gate refusing a number |
+| 28 to 30 | Open the evidence pack and read the five release blockers aloud |
+
 ## Troubleshooting
 
 | Symptom | Likely cause and fix |
@@ -214,7 +290,7 @@ Each experiment changes one thing so you can see what it does. Run the demo agai
 | `python` is not recognised | Install Python 3.10 or newer from python.org and tick "Add to PATH", then reopen PowerShell |
 | `Activate.ps1 cannot be loaded` | Run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once |
 | `ModuleNotFoundError: lbidsm` | The environment is not active or step 4 was skipped. Activate `.venv` and run the install again |
-| `error: pathspec 'feature/research-modules-v0.3' did not match` | The branch has been merged and removed. Skip step 2 |
+| `error: pathspec 'feature/research-modules-v0.3' did not match` | The branch was merged and removed. Skip step 2 |
 | Tests show collection errors | Same cause as the previous but one: run `python -m pip install -e ".[dev]"` inside the active environment |
 | The demo prints different numbers | You may be on a different version. Check `git log --oneline -1` and the version in `pyproject.toml` (0.3.1 at the time of writing) |
 | Step 9 lists dozens of "requirements without a test" | You ran it from another folder, so it could not find `tests`. Run it from the repository's top folder |
@@ -231,4 +307,5 @@ Each experiment changes one thing so you can see what it does. Run the demo agai
 - `docs/RESEARCH_MODULES.md`: a two-page map of every module.
 - `docs/DECISIONS.md`: why the provisional values were chosen.
 - `docs/DATA_SOURCES.md`: real datasets and their access status.
+- `data/sample/`: the synthetic teaching sample used in Worked results.
 - The proposal document, Part VI: a file-by-file guide to the code.
