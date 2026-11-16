@@ -132,3 +132,71 @@ def benchmark(examples: pd.DataFrame, seed: int = 42) -> tuple[pd.DataFrame, dic
             "log_loss": float(log_loss(y, pred)),
         })
     return pd.DataFrame(result), report
+
+
+def benchmark_extended(examples: pd.DataFrame, covariates: pd.DataFrame, seed: int = 42, C_static: float = 0.1):
+    """Compare CGM-only logistic regression with versions that add baseline covariates.
+
+    Models: cgm_history; + metabolic; + metabolic, genetic and treatment; + preliminary endotype.
+    Imputation, scaling and clustering are fitted on training subjects only. Static covariates
+    are constant within a subject, so effective sample size is the number of subjects, not
+    windows; they are L2-penalised (C_static) and the report gives subject counts. Research only.
+    """
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import roc_auc_score, average_precision_score, brier_score_loss, log_loss
+    from sklearn.pipeline import make_pipeline
+    from sklearn.impute import SimpleImputer
+    from sklearn.preprocessing import StandardScaler
+    from .covariates import attach_covariates, available, METABOLIC, GENETIC, TREATMENT
+    from .endotypes import EndotypeClusterer, endotype_features
+
+    data = attach_covariates(examples, covariates)
+    train, calibration, test = tuple(cohort_split(data, seed))
+    report = {"seed": seed, "subjects": {}, "positives": {},
+              "event_definition": "any observed CGM sample <54 mg/dL within next 60 minutes (surrogate)"}
+    for name, frame in (("train", train), ("calibration", calibration), ("test", test)):
+        report["subjects"][name] = int(frame.subject_id.nunique())
+        report["positives"][name] = int(frame.event_lt54.sum())
+        if frame.event_lt54.nunique() != 2:
+            raise ValueError(f"{name} split lacks both outcome classes; do not publish performance estimates")
+
+    metab = available(train, METABOLIC)
+    gen = available(train, GENETIC) + available(train, TREATMENT)
+    sub_cov = covariates.assign(subject_id=covariates.subject_id.astype(str))
+    sub_cov = sub_cov[sub_cov.subject_id.isin(train.subject_id.unique())]
+    try:
+        clus = EndotypeClusterer(seed=seed).fit(sub_cov)
+        all_cov = covariates.assign(subject_id=covariates.subject_id.astype(str))
+        labels = clus.transform(all_cov)
+        for f in (train, calibration, test):
+            f[[f"endotype_{j}" for j in range(1, clus.k_)]] = endotype_features(labels, clus.k_, f.subject_id)
+        endo_cols = [f"endotype_{j}" for j in range(1, clus.k_)]
+        report["endotype_quality"] = clus.quality_
+        report["endotype_selection"] = clus.selection_.round(3).to_dict("records")
+        report["endotype_profile"] = clus.profile(sub_cov).reset_index().to_dict("records")
+    except ValueError as exc:
+        endo_cols, report["endotype_quality"] = [], {"skipped": str(exc)}
+
+    specs = [("cgm_history", FEATURES_CGM, [], 1.0),
+             ("cgm_plus_metabolic", FEATURES_CGM, metab, C_static),
+             ("cgm_plus_metabolic_genetic_treatment", FEATURES_CGM, metab + gen, C_static)]
+    if endo_cols:
+        specs.append(("cgm_plus_endotype", FEATURES_CGM, endo_cols, C_static))
+    result = []
+    for name, cgm_cols, static_cols, C in specs:
+        cols = cgm_cols + static_cols
+        if name != "cgm_history" and not static_cols:
+            continue
+        model = make_pipeline(SimpleImputer(strategy="median"), StandardScaler(),
+                              LogisticRegression(C=C, max_iter=2000, random_state=seed))
+        model.fit(train[cols], train.event_lt54)
+        raw_cal = model.predict_proba(calibration[cols])[:, 1]
+        raw_test = model.predict_proba(test[cols])[:, 1]
+        calibrator = LogisticRegression(max_iter=1000, random_state=seed).fit(raw_cal.reshape(-1, 1), calibration.event_lt54)
+        pred = np.clip(calibrator.predict_proba(raw_test.reshape(-1, 1))[:, 1], 1e-6, 1 - 1e-6)
+        y = test.event_lt54.to_numpy()
+        result.append({"model": name, "n_static_features": len(static_cols), "n_test": len(y), "test_events": int(y.sum()),
+                       "prevalence": float(y.mean()), "auroc": float(roc_auc_score(y, pred)),
+                       "auprc": float(average_precision_score(y, pred)), "brier": float(brier_score_loss(y, pred)),
+                       "log_loss": float(log_loss(y, pred))})
+    return pd.DataFrame(result), report

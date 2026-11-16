@@ -4,6 +4,10 @@
 
 > **Medical safety:** This software is not a medical device. It must not be used to diagnose illness, estimate validated patient-specific risk, make medication adjustments, or handle emergencies. All bundled data are synthetic.
 
+## Principal objective
+
+The aim of the whole project, from Phase 1 onwards, is to move from generalised treatments to **endotype-specific approaches**: grouping people with type 2 diabetes by shared biological mechanism, showing that the groups are stable and useful, and matching treatments, drug targets and trials to them. Baseline covariates, PCA, preliminary endotype clustering and confounder screening are in [docs/COVARIATES_AND_ENDOTYPES.md](docs/COVARIATES_AND_ENDOTYPES.md). Phase 1 is a pilot study: it only asks whether this approach adds value over generalised models. That code is research-only and has been tested on synthetic data only.
+
 ## Why this project exists
 
 **A Proposed Mathematical and AI Architecture for Personalized Intervention Decision Support, for Diabetes** explores a progression from descriptive glucose thresholds to longitudinal signals, mathematical state estimation, calibrated prediction, causal treatment-effect evaluation and robust decision optimization. The repository deliberately keeps **working analytics** distinct from **future research modules**.
@@ -19,7 +23,7 @@
 
 ### Not implemented / not validated
 
-Trained hypoglycemia prediction, patient-specific causal effects, genetics, personalized medical recommendations, optimized treatments, clinical-grade data pipelines, external validation, regulatory compliance and production access controls. These are **research specifications only**.
+Patient-specific causal effects, validated genetic and endotype analyses on real cohorts, personalized medical recommendations, optimized treatments, clinical-grade data pipelines, external validation, regulatory compliance and production access controls. These are **research specifications only**.
 
 
 ## Research papers (two distinct manuscripts)
@@ -76,3 +80,7 @@ The simulated CGM series is not a physiologically validated glucose–insulin mo
 **Citation:** Sankhala, V. S. (2026). *A proposed mathematical and AI architecture for personalized intervention decision support, for diabetes* (research white paper, version 2.0). Project repository.
 
 **License:** MIT for software; scholarly citation is requested for the separately authored research text. No clinical warranty is provided.
+
+
+## Mendelian randomisation target filter (research-only)
+See `docs/MENDELIAN_RANDOMISATION.md`: `src/lbidsm/mr.py` (MR, colocalisation, reverse MR, safety read-across, stratified MR) and `src/lbidsm/endotype_schema.py` (SAID/SIDD/SIRD/MOD/MARD variable layers). Simulated-data tests only.
